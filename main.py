@@ -34,10 +34,10 @@ else:
     #А потому что чё логику ломать?
     exit('ERR: Игрока нету на карте!')
 #Переменные
-fps = 9 #Кол-во кадров в секунду, расчитываються по формуле 1 секунда/кол-во кадорв (1/fps)
-frames = 0 #Служит для дебага, показывает кол-во кадров что было. мб можно как-то учитывать сколько сейчас fps
-
-
+#Максимальный фпс 55(с пролагами) оптимальный 60(20)
+fps = 60 #Кол-во кадров в секунду, расчитываються по формуле 1 секунда/кол-во кадорв (1/fps)
+rfps = 0 #Количетсво Реальных кадров в секунду Real Frame Per Second
+start = 0
 #Везде где есть приписка async в функциях делает её асинхронной
 '''
 Для тебя макс, как работает функция тоесть def(без асинхрона). 
@@ -47,19 +47,26 @@ name() - Name это название функции в скобках ты пи
 после если ты хочешь чтобы эта функция что то отдавала после себя ты можешь написат return и что вернуть например return h + 1 а потом если вызвать эту функцию в принт то при значении h = 1 мы получим 2 print(name(1)) = 2
 это был краткий экскурс по данной штуке, более понятнее объясню когда созвонимся
 '''
-async def debug():
-    print(f'{player_x=},{player_y=},{frames=}')
+async def debug(start_time, frame_count):
+    current_time = time.time()
+    elapsed_time = current_time - start_time
+
+    if elapsed_time >= 1:
+        fps = frame_count / elapsed_time
+        print(f'FPS: {fps:.2f},{player_x=},{player_y=}')
+        return current_time, 0
+    else:
+        return start_time, frame_count + 1
+
+
 
 async def screen():
     global field, player_x, player_y
     for i in range(len(field)):
-        for j in range(len(field[0])):
-            if i == player_y and j == player_x:
-                print('@', end=' ')
-            else:
-                print(field[i][j], end=' ')
-        print()
+        row = ' '.join(['@' if i == player_y and j == player_x else cell for j, cell in enumerate(field[i])])
+        print(row)
 
+#Управление игроком через координаты
 async def playercontrol():
     global player_x, player_y
     if keyboard.is_pressed('up') and player_y > 0 and field[player_y - 1][player_x] != "#" and field[player_y - 1][player_x] != " ":
@@ -75,17 +82,21 @@ async def playercontrol():
         field[player_y][player_x] = '.'  # Стираем старое место игрока
         player_x += 1
     field[player_y][player_x] = '@'  # Устанавливаем новое место игрока
-
+#Надо сделать спавнелку мобов
 async def spawn_pokemons():
     global field
     pass
+async def main_loop():
+    start_time = time.time()
+    frame_count = 0
 
-while True:
-    frames += 1
-    asyncio.run(debug())
-    asyncio.run(screen())
-    asyncio.run(playercontrol())
-    time.sleep(1 / fps)
-    os.system('cls' if os.name == 'nt' else 'clear')
-    if keyboard.is_pressed('q'):
-        break
+    while True:
+        await asyncio.gather(screen(), playercontrol(), debug(start_time, frame_count))
+        await asyncio.sleep(1/fps)
+        os.system('cls' if os.name == 'nt' else 'clear')
+        frame_count += 1
+
+        if keyboard.is_pressed('q'):
+            break
+
+asyncio.run(main_loop())
