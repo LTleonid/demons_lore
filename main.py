@@ -4,16 +4,23 @@ import os #Для очистки кончоли (надо сделать сох�
 import time #Для задержек
 import asyncio #Для Асинхронового запуска функций
 import random #Для рандомизации спавна врагов мб
-#Создание поля(Его можно делать в редакторе, надо сделать систему уровней)
+#Создание поля(Его можно делать в редакторе)
+'''
+# - Стена
+. - Пустота
+@ - игрок
+^ - письмо
+'''
+direction = '@'
 field = [
 ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
 ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
 ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
 ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
-['#', '.', '.', '.', '.', '@', '.', '.', '.', '#'],
+['#', '.', '.', '^', '.', '@', '.', '.', '.', '#'],
 ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
 ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
-['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
+['#', '.', '.', '.', '.', '.', '.', '.', '^', '#'],
 ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
 ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
 ]
@@ -27,7 +34,7 @@ def find_symbol(field, symbol):
                 player_x, player_y = j, i
                 return True
     return None
-#Провеека на нахождение игрока в игре
+#Проверка на нахождение игрока в игре
 if find_symbol(field, "@"):
     pass
 else:
@@ -38,6 +45,14 @@ else:
 fps = 60 #Кол-во кадров в секунду, расчитываються по формуле 1 секунда/кол-во кадорв (1/fps)
 rfps = 0 #Количетсво Реальных кадров в секунду Real Frame Per Second
 start = 0
+exit_flag = 0
+'''Для управлений
+    pos = field[player_y][player_x]
+    left = field[player_y][player_x - 1]
+    right = field[player_y][player_x + 1]
+    down = field[player_y + 1][player_x]
+    up = field[player_y - 1][player_x]
+'''
 #Везде где есть приписка async в функциях делает её асинхронной
 '''
 Для тебя макс, как работает функция тоесть def(без асинхрона). 
@@ -58,27 +73,52 @@ async def debug(start_time, frame_count):
     else:
         return start_time, frame_count + 1
 
+async def letter_pickup():
+    global player_x,player_y
+    left = field[player_y][player_x - 1]
+    right = field[player_y][player_x + 1]
+    down = field[player_y + 1][player_x]
+    up = field[player_y - 1][player_x]
+
+    await direction_arrow()
+
+    if left == "^" and keyboard.is_pressed('e') and direction == '←':
+        field[player_y][player_x - 1] = '.'
+    
+
+
+
+async def direction_arrow():
+    global direction, player_x, player_y
+    if keyboard.is_pressed('up'):
+        direction = '↑'
+    elif keyboard.is_pressed('down'):
+        direction = '↓'
+    elif keyboard.is_pressed('left'):
+        direction = '←'
+    elif keyboard.is_pressed('right'):
+        direction = '→'
 
 
 async def screen():
-    global field, player_x, player_y
+    global field, player_x, player_y, direction
     for i in range(len(field)):
-        row = ' '.join(['@' if i == player_y and j == player_x else cell for j, cell in enumerate(field[i])])
+        row = ' '.join([direction if i == player_y and j == player_x else cell for j, cell in enumerate(field[i])])
         print(row)
 
 #Управление игроком через координаты
 async def playercontrol():
     global player_x, player_y
-    if keyboard.is_pressed('up') and player_y > 0 and field[player_y - 1][player_x] != "#" and field[player_y - 1][player_x] != " ":
+    if keyboard.is_pressed('up') and player_y > 0 and field[player_y - 1][player_x] != "#" and field[player_y - 1][player_x] != "^":
         field[player_y][player_x] = '.'  # Стираем старое место игрока
         player_y -= 1
-    elif keyboard.is_pressed('down') and player_y < len(field) - 1 and field[player_y + 1][player_x] != "#" and field[player_y + 1][player_x] != " ":
+    elif keyboard.is_pressed('down') and player_y < len(field) - 1 and field[player_y + 1][player_x] != "#" and field[player_y + 1][player_x] != "^":
         field[player_y][player_x] = '.'  # Стираем старое место игрока
         player_y += 1
-    elif keyboard.is_pressed('left') and player_x > 0 and field[player_y][player_x - 1] != "#" and field[player_y][player_x - 1] != " ":
+    elif keyboard.is_pressed('left') and player_x > 0 and field[player_y][player_x - 1] != "#" and field[player_y][player_x - 1] != "^":
         field[player_y][player_x] = '.'  # Стираем старое место игрока
         player_x -= 1
-    elif keyboard.is_pressed('right') and player_x < len(field[0]) - 1 and field[player_y][player_x + 1] != "#" and field[player_y][player_x + 1] != " ":
+    elif keyboard.is_pressed('right') and player_x < len(field[0]) - 1 and field[player_y][player_x + 1] != "#" and field[player_y][player_x + 1] != "^":
         field[player_y][player_x] = '.'  # Стираем старое место игрока
         player_x += 1
     field[player_y][player_x] = '@'  # Устанавливаем новое место игрока
@@ -86,14 +126,15 @@ async def playercontrol():
 async def spawn_pokemons():
     global field
     pass
+
 async def main_loop():
     start_time = time.time()
     frame_count = 0
-
-    while True:
-        await asyncio.gather(screen(), playercontrol(), debug(start_time, frame_count))
+    global exit_flag
+    while not exit_flag:
+        await asyncio.gather(screen(), playercontrol(), direction_arrow(), debug(start_time, frame_count), letter_pickup())
         await asyncio.sleep(1/fps)
-        os.system('cls' if os.name == 'nt' else 'clear')
+        os.system('cls' if os.name == 'nt' else 'clear')    
         frame_count += 1
 
         if keyboard.is_pressed('q'):
