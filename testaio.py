@@ -2,14 +2,14 @@
 import keyboard
 import os
 import time
-import asyncio
 import pickle
+
 # Создание поля
 '''
 # - Стена
 . - Пустота
 @ - игрок
-* - переход на следующий уровень
+^ - письмо
 '''
 direction = '@'
 field = [
@@ -17,16 +17,18 @@ field = [
     ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
     ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
     ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
-    ['#', '.', '.', '.', '.', '@', '.', '.', '.', '#'],
+    ['#', '.', '.', '^', '.', '@', '.', '.', '.', '#'],
     ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
     ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
-    ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
+    ['#', '.', '.', '.', '.', '.', '.', '.', '^', '#'],
     ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
     ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
 ]
 
-
-
+# Добавим словарь для текстов писем
+letters = {
+    '^': "Это письмо содержит важную информацию!",
+}
 
 # Для поиска игрока на карте и управления им
 def find_symbol(field, symbol):
@@ -45,7 +47,7 @@ else:
     exit('ERR: Игрока нету на карте!')
 
 # Переменные
-fps = 60
+fps = 99999999
 rfps = 0
 start = 0
 
@@ -57,7 +59,7 @@ start = 0
 # up = field[player_y - 1][player_x]
 
 # Для вывода информации о кадрах в секунду
-async def debug(start_time, frame_count):
+def debug(start_time, frame_count):
     current_time = time.time()
     elapsed_time = current_time - start_time
 
@@ -68,8 +70,39 @@ async def debug(start_time, frame_count):
     else:
         return start_time, frame_count + 1
 
+# Логика поднятия писем
+def letter_pickup():
+    global player_x, player_y
+    left = field[player_y][player_x - 1]
+    right = field[player_y][player_x + 1]
+    down = field[player_y + 1][player_x]
+    up = field[player_y - 1][player_x]
+
+    direction_arrow()
+
+    if left == "^" and keyboard.is_pressed('e') and direction == '←':
+        # Поднимаем письмо и выводим его текст
+        letter = letters[left]
+        print(f'Получено письмо: {letter}')
+        field[player_y][player_x - 1] = '.'
+    if right == "^" and keyboard.is_pressed('e') and direction == '→':
+        # Поднимаем письмо и выводим его текст
+        letter = letters[right]
+        print(f'Получено письмо: {letter}')
+        field[player_y][player_x + 1] = 'e.'
+    if down == "^" and keyboard.is_pressed('e') and direction == '↓':
+        # Поднимаем письмо и выводим его текст
+        letter = letters[down]
+        print(f'Получено письмо: {letter}')
+        field[player_y + 1][player_x] = '.'
+    if up == "^" and keyboard.is_pressed('e') and direction == '↑':
+        # Поднимаем письмо и выводим его текст
+        letter = letters[up]
+        print(f'Получено письмо: {letter}')
+        field[player_y - 1][player_x] = '.'
+
 # Обновление направления
-async def direction_arrow():
+def direction_arrow():
     global direction, player_x, player_y
     if keyboard.is_pressed('up'):
         direction = '↑'
@@ -81,14 +114,14 @@ async def direction_arrow():
         direction = '→'
 
 # Вывод игрового поля
-async def screen():
+def screen():
     global field, player_x, player_y, direction
     for i in range(len(field)):
         row = ' '.join([direction if i == player_y and j == player_x else cell for j, cell in enumerate(field[i])])
         print(row)
 
 # Управление игроком через координаты
-async def playercontrol():
+def playercontrol():
     global player_x, player_y
     if keyboard.is_pressed('up') and player_y > 0 and field[player_y - 1][player_x] != "#" and field[player_y - 1][player_x] != "^":
         field[player_y][player_x] = '.'
@@ -116,7 +149,6 @@ def save_game():
     with open(save_file, 'wb') as f:
         pickle.dump(data, f)
 
-
 def load_game():
     try:
         with open(save_file, 'rb') as f:
@@ -126,8 +158,6 @@ def load_game():
         print("Файл сохранения не найден.")
         time.sleep(1)
         main_menu()
-    
-
 
 def main_menu():
     print("Меню:")
@@ -151,10 +181,8 @@ def main_menu():
         print("Неверный выбор.")
         return None
 
-
-
 # Основной игровой цикл
-async def main_loop():
+def main_loop():
     global player_x, player_y, field
 
     while True:
@@ -171,8 +199,12 @@ async def main_loop():
         frame_count = 0
 
         while True:
-            await asyncio.gather(screen(), playercontrol(), letter_pickup(), direction_arrow(), debug(start_time, frame_count))
-            await asyncio.sleep(1 / fps)
+            screen()
+            playercontrol()
+            letter_pickup()
+            direction_arrow()
+            debug(start_time, frame_count)
+            time.sleep(1 / fps)
             os.system('cls' if os.name == 'nt' else 'clear')
             frame_count += 1
 
@@ -180,4 +212,4 @@ async def main_loop():
                 save_game()  # Сохранение при выходе из игры
                 break
 
-asyncio.run(main_loop())
+main_loop()

@@ -41,7 +41,7 @@ else:
     #А потому что чё логику ломать?
     exit('ERR: Игрока нету на карте!')
 #Переменные
-#Максимальный фпс 55(с пролагами) оптимальный 60(20)
+#Максимальный фпс 127(с пролагами) оптимальный 60(20)
 fps = 60 #Кол-во кадров в секунду, расчитываються по формуле 1 секунда/кол-во кадорв (1/fps)
 rfps = 0 #Количетсво Реальных кадров в секунду Real Frame Per Second
 start = 0
@@ -68,7 +68,7 @@ async def debug(start_time, frame_count):
 
     if elapsed_time >= 1:
         fps = frame_count / elapsed_time
-        print(f'FPS: {fps:.2f},{player_x=},{player_y=}')
+        print(f'FPS: {fps:.2f},{player_x=},{player_y=},{frame_count=}')
         return current_time, 0
     else:
         return start_time, frame_count + 1
@@ -134,7 +134,7 @@ async def main_loop():
     while not exit_flag:
         await asyncio.gather(screen(), playercontrol(), direction_arrow(), debug(start_time, frame_count), letter_pickup())
         await asyncio.sleep(1/fps)
-        os.system('cls' if os.name == 'nt' else 'clear')    
+        os.sysqtem('cls' if os.name == 'nt' else 'clear')    
         frame_count += 1
 
         if keyboard.is_pressed('q'):
