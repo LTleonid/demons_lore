@@ -12,13 +12,8 @@ import levels
 @ - игрок
 ^ - письмо
 '''
+
 direction = '@'
-
-
-# Добавим словарь для текстов писем
-letters = {
-    '^': "Это письмо содержит важную информацию!",
-}
 
 # Для поиска игрока на карте и управления им
 def find_symbol(field, symbol):
@@ -30,12 +25,11 @@ def find_symbol(field, symbol):
                 return True
     return None
 
-
-
 # Переменные
-fps = 0.5
+fps = 600
 rfps = 0
 start = 0
+speed = 1 
 field = levels.level2
 
 # Проверка на нахождение игрока в игре
@@ -43,13 +37,6 @@ if find_symbol(field, "@"):
     pass
 else:
     exit('ERR: Игрока нету на карте!')
-
-# Для управлений
-# pos = field[player_y][player_x]
-# left = field[player_y][player_x - 1]
-# right = field[player_y][player_x + 1]
-# down = field[player_y + 1][player_x]
-# up = field[player_y - 1][player_x]
 
 # Для вывода информации о кадрах в секунду
 async def debug(start_time, frame_count):
@@ -63,36 +50,6 @@ async def debug(start_time, frame_count):
     else:
         return start_time, frame_count + 1
 
-# Логика поднятия писем
-async def letter_pickup():
-    global player_x, player_y
-    left = field[player_y][player_x - 1]
-    right = field[player_y][player_x + 1]
-    down = field[player_y + 1][player_x]
-    up = field[player_y - 1][player_x]
-
-    await direction_arrow()
-
-    if left == "^" and keyboard.is_pressed('e') and direction == '←':
-        # Поднимаем письмо и выводим его текст
-        letter = letters[left]
-        print(f'Получено письмо: {letter}')
-        field[player_y][player_x - 1] = '.'
-    if right == "^" and keyboard.is_pressed('e') and direction == '→':
-        # Поднимаем письмо и выводим его текст
-        letter = letters[right]
-        print(f'Получено письмо: {letter}')
-        field[player_y][player_x + 1] = '.'
-    if down == "^" and keyboard.is_pressed('e') and direction == '↓':
-        # Поднимаем письмо и выводим его текст
-        letter = letters[down]
-        print(f'Получено письмо: {letter}')
-        field[player_y + 1][player_x] = '.'
-    if up == "^" and keyboard.is_pressed('e') and direction == '↑':
-        # Поднимаем письмо и выводим его текст
-        letter = letters[up]
-        print(f'Получено письмо: {letter}')
-        field[player_y - 1][player_x] = '.'
 # Обновление направления
 async def direction_arrow():
     global direction, player_x, player_y
@@ -112,22 +69,30 @@ async def screen():
         row = ' '.join([direction if i == player_y and j == player_x else cell for j, cell in enumerate(field[i])])
         print(row)
 
+# Для управлений
+# pos = field[player_y][player_x]
+# left = field[player_y][player_x - 1]
+# right = field[player_y][player_x + 1]
+# down = field[player_y + 1][player_x]
+# up = field[player_y - 1][player_x]
+
 # Управление игроком через координаты
-async def playercontrol():
+async def playercontrol(frame_count):
     global player_x, player_y
-    if keyboard.is_pressed('up') and player_y > 0 and field[player_y - 1][player_x] != "#" and field[player_y - 1][player_x] != "^":
-        field[player_y][player_x] = '.'
-        player_y -= 1
-    elif keyboard.is_pressed('down') and player_y < len(field) - 1 and field[player_y + 1][player_x] != "#" and field[player_y + 1][player_x] != "^":
-        field[player_y][player_x] = '.'
-        player_y += 1
-    elif keyboard.is_pressed('left') and player_x > 0 and field[player_y][player_x - 1] != "#" and field[player_y][player_x - 1] != "^":
-        field[player_y][player_x] = '.'
-        player_x -= 1
-    elif keyboard.is_pressed('right') and player_x < len(field[0]) - 1 and field[player_y][player_x + 1] != "#" and field[player_y][player_x + 1] != "^":
-        field[player_y][player_x] = '.'
-        player_x += 1
-    field[player_y][player_x] = '@'
+    if frame_count % (2 * speed) == 0:
+        if keyboard.is_pressed('up') and player_y > 0 and field[player_y - 1][player_x] != "#" and field[player_y - 1][player_x] != "^":
+            field[player_y][player_x] = '.'
+            player_y -= 1
+        elif keyboard.is_pressed('down') and player_y < len(field) - 1 and field[player_y + 1][player_x] != "#" and field[player_y + 1][player_x] != "^":
+            field[player_y][player_x] = '.'
+            player_y += 1
+        elif keyboard.is_pressed('left') and player_x > 0 and field[player_y][player_x - 1] != "#" and field[player_y][player_x - 1] != "^":
+            field[player_y][player_x] = '.'
+            player_x -= 1
+        elif keyboard.is_pressed('right') and player_x < len(field[0]) - 1 and field[player_y][player_x + 1] != "#" and field[player_y][player_x + 1] != "^":
+            field[player_y][player_x] = '.'
+            player_x += 1
+        field[player_y][player_x] = '@'
 
 save_file = "save_game.pkl"
 
@@ -141,7 +106,6 @@ def save_game():
     with open(save_file, 'wb') as f:
         pickle.dump(data, f)
 
-
 def load_game():
     try:
         with open(save_file, 'rb') as f:
@@ -152,8 +116,6 @@ def load_game():
         time.sleep(1)
         main_menu()
     
-
-
 def main_menu():
     print("Меню:")
     print("1. Новая игра")
@@ -177,10 +139,6 @@ def main_menu():
         print("Неверный выбор.")
         return None
 
-
-
-
-
 # Основной игровой цикл
 async def main_loop():
     global player_x, player_y, current_level
@@ -199,11 +157,11 @@ async def main_loop():
         frame_count = 0
 
         while True:
-            await asyncio.gather(screen(), playercontrol(), letter_pickup(), direction_arrow(), debug(start_time, frame_count))
-            await asyncio.sleep(1 / fps)
+            await asyncio.gather(screen(), playercontrol(frame_count), direction_arrow(), debug(start_time, frame_count))
+            await asyncio.sleep(speed / fps)  # Изменено
             os.system('cls' if os.name == 'nt' else 'clear')
             frame_count += 1
-
+            # Выход в меню
             if keyboard.is_pressed('q'):
                 save_game()  # Сохранение при выходе из игры
                 break
