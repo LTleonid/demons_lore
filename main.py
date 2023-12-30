@@ -45,7 +45,6 @@ else:
 fps = 60 #Кол-во кадров в секунду, расчитываються по формуле 1 секунда/кол-во кадорв (1/fps)
 rfps = 0 #Количетсво Реальных кадров в секунду Real Frame Per Second
 start = 0
-exit_flag = 0
 '''Для управлений
     pos = field[player_y][player_x]
     left = field[player_y][player_x - 1]
@@ -130,8 +129,8 @@ async def spawn_pokemons():
 async def main_loop():
     start_time = time.time()
     frame_count = 0
-    global exit_flag
-    while not exit_flag:
+
+    while True:
         await asyncio.gather(screen(), playercontrol(), direction_arrow(), debug(start_time, frame_count), letter_pickup())
         await asyncio.sleep(1/fps)
         os.system('cls' if os.name == 'nt' else 'clear')    

@@ -4,6 +4,7 @@ import os
 import time
 import asyncio
 import pickle
+import levels
 # Создание поля
 '''
 # - Стена
@@ -12,18 +13,7 @@ import pickle
 ^ - письмо
 '''
 direction = '@'
-field = [
-    ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
-    ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
-    ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
-    ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
-    ['#', '.', '.', '^', '.', '@', '.', '.', '.', '#'],
-    ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
-    ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
-    ['#', '.', '.', '.', '.', '.', '.', '.', '^', '#'],
-    ['#', '.', '.', '.', '.', '.', '.', '.', '.', '#'],
-    ['#', '#', '#', '#', '#', '#', '#', '#', '#', '#'],
-]
+
 
 # Добавим словарь для текстов писем
 letters = {
@@ -40,17 +30,19 @@ def find_symbol(field, symbol):
                 return True
     return None
 
+
+
+# Переменные
+fps = 0.5
+rfps = 0
+start = 0
+field = levels.level2
+
 # Проверка на нахождение игрока в игре
 if find_symbol(field, "@"):
     pass
 else:
     exit('ERR: Игрока нету на карте!')
-
-# Переменные
-fps = 60
-rfps = 0
-start = 0
-
 
 # Для управлений
 # pos = field[player_y][player_x]
@@ -90,7 +82,7 @@ async def letter_pickup():
         # Поднимаем письмо и выводим его текст
         letter = letters[right]
         print(f'Получено письмо: {letter}')
-        field[player_y][player_x + 1] = 'e.'
+        field[player_y][player_x + 1] = '.'
     if down == "^" and keyboard.is_pressed('e') and direction == '↓':
         # Поднимаем письмо и выводим его текст
         letter = letters[down]
@@ -171,13 +163,14 @@ def main_menu():
     choice = input("Выберите действие: ")
 
     if choice == "1":
-        # Новая игра, сброс данных
-        if os.path.exists(save_file):
-            os.remove(save_file)
-        return None
+        return {'player_x': 4, 'player_y': 4, 'field': field}  # Новая игра, установка начального уровня
     elif choice == "2":
-        # Продолжить, загрузка данных
-        return load_game()
+        saved_game = load_game()
+        if saved_game:
+            return saved_game  # Продолжить, загрузка сохраненного уровня
+        else:
+            print("Нет сохраненной игры.")
+            return None
     elif choice == "3":
         exit("Выход из игры.")
     else:
@@ -186,9 +179,11 @@ def main_menu():
 
 
 
+
+
 # Основной игровой цикл
 async def main_loop():
-    global player_x, player_y, field
+    global player_x, player_y, current_level
 
     while True:
         game_data = main_menu()
@@ -198,7 +193,7 @@ async def main_loop():
             # Продолжение игры, загрузка данных
             player_x = game_data['player_x']
             player_y = game_data['player_y']
-            field = game_data['field']
+            current_level = game_data['field']
 
         start_time = time.time()
         frame_count = 0
