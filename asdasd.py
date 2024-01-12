@@ -1,33 +1,13 @@
-pos = 0
-hp = 20
-inventory = [
-    'Steak',
-    'Steak1',
-    'steak2',
-    'notAnumber',
-    '5'
-]
-inventory_modificater = 0
-
-def fight():
-    global pos
-    if pos == 0:
-        Inventory_menu1(inventory[0 + inventory_modificater], inventory[1 + inventory_modificater],
-                         inventory[2 + inventory_modificater], inventory[3 + inventory_modificater])
-
-def Inventory_menu1(item1, item2, item3, item4):
-    print('   ┌─────────────────────────────┐')
-    print('   │                             │')
-    print('   │                             │')
-    print('   │        ┌─┐      ┌─┐         │')
-    print('   │        │ │      │ │         │')
-    print('   │        └─┘ ──── └─┘         │')
-    print('   │                             │')
-    print('   ├─────────────────────────────┤')
-    print(f'   │ >{item1}    *{item2}      ',end='|\n')
-    print(f'   │ *{item3}    *{item4}      ',end='|\n')
-    print('   │          HP:100             │')
-    print('   └─────────────────────────────┘')
-    print('\n')
-
-fight()
+import random
+r1 = 0
+r0 = 0
+r2 = 0
+for i in range(100):
+    r = random.randint(0,2)
+    if r == 0:
+        r0 += 1
+    if r == 1:
+        r1 += 1
+    if r == 2:
+        r2 += 1
+print(f'{r1=},{r2=},{r0=}')
