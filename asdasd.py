@@ -1,33 +1,15 @@
-pos = 0
-hp = 20
-inventory = [
-    'Steak',
-    'Steak1',
-    'steak2',
-    'notAnumber',
-    '5'
-]
-inventory_modificater = 0
+import colorama
+colorama.init(autoreset=True)
 
-def fight():
-    global pos
-    if pos == 0:
-        Inventory_menu1(inventory[0 + inventory_modificater], inventory[1 + inventory_modificater],
-                         inventory[2 + inventory_modificater], inventory[3 + inventory_modificater])
-
-def Inventory_menu1(item1, item2, item3, item4):
-    print('   ┌─────────────────────────────┐')
-    print('   │                             │')
-    print('   │                             │')
-    print('   │        ┌─┐      ┌─┐         │')
-    print('   │        │ │      │ │         │')
-    print('   │        └─┘ ──── └─┘         │')
-    print('   │                             │')
-    print('   ├─────────────────────────────┤')
-    print(f'   │ >{item1}    *{item2}      ',end='|\n')
-    print(f'   │ *{item3}    *{item4}      ',end='|\n')
-    print('   │          HP:100             │')
-    print('   └─────────────────────────────┘')
-    print('\n')
-
-fight()
+lines = [
+        "С Новым Годом, дорогие родители!",
+        "Желаем вам счастья, здоровья и удачи в новом году!",
+        "Пусть каждый день будет наполнен радостью и уютом.",
+        "С любовью и благословением,",
+        "Ваши дети"
+    ]
+line_length = max(len(line) for line in lines)
+print(colorama.Fore.WHITE + "#" * (line_length + 4))
+for line in lines:
+    print(colorama.Fore.GREEN + "# " + line.center(line_length) + " #")
+print(colorama.Fore.WHITE + "#" * (line_length + 4))
