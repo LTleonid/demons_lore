@@ -20,7 +20,7 @@ def find_symbol(field, symbol):
     return None
 
 # Переменные
-fps = 600
+fps = 60
 rfps = 0
 start = 0
 speed = 1 
